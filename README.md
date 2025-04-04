@@ -1,4 +1,4 @@
-# Escrow-Based NFT Marketplace
+# Escrow-Based NFT Marketplace In Solana
 
 ### Design
 
