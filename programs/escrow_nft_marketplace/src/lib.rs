@@ -6,7 +6,7 @@ use anchor_spl::{
 };
 use std::mem::size_of;
 
-declare_id!("GYM7MkxtGigSniXCYFst5rYTHQYx527hUwHW7QVXKm1D");
+declare_id!("ASJfDuKi5Di3Shb6TtEshYm8VMbZufGLWR65GgzFvJNe");
 
 #[program]
 pub mod nft_marketplace {
@@ -61,16 +61,6 @@ pub mod nft_marketplace {
                 require_keys_eq!(listing_mint, buyer.mint, MarketplaceError::PaymentMintMismatch);
                 require_keys_eq!(listing_mint, seller.mint, MarketplaceError::PaymentMintMismatch);
 
-                let cpi_accounts = TransferChecked {
-                    from: ctx.accounts.escrow_account.to_account_info(),
-                    to: ctx.accounts.buyer_token_account.to_account_info(),
-                    mint: ctx.accounts.mint.to_account_info(),
-                    authority: ctx.accounts.escrow_account.to_account_info(),
-                };
-                let cpi_program = ctx.accounts.token_program.to_account_info();
-                let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer_seeds);
-                token_interface::transfer_checked(cpi_ctx, 1, 0)?;
-        
                 let decimals = provided_mint.decimals;
                 let cpi_accounts = TransferChecked {
                     mint: provided_mint.to_account_info(),
@@ -86,16 +76,6 @@ pub mod nft_marketplace {
             }
 
             (None, None, None, None) => {
-
-                let cpi_accounts = TransferChecked {
-                    from: ctx.accounts.escrow_account.to_account_info(),
-                    to: ctx.accounts.buyer_token_account.to_account_info(),
-                    mint: ctx.accounts.mint.to_account_info(),
-                    authority: ctx.accounts.escrow_account.to_account_info(),
-                };
-                let cpi_program = ctx.accounts.token_program.to_account_info();
-                let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer_seeds);
-                token_interface::transfer_checked(cpi_ctx, 1, 0)?;
 
                 system_program::transfer(
                     CpiContext::new(
@@ -113,6 +93,16 @@ pub mod nft_marketplace {
             _ => return Err(MarketplaceError::PaymentMintMismatch.into()),
 
         }
+
+        let cpi_accounts = TransferChecked {
+            from: ctx.accounts.escrow_account.to_account_info(),
+            to: ctx.accounts.buyer_token_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            authority: ctx.accounts.escrow_account.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer_seeds);
+        token_interface::transfer_checked(cpi_ctx, 1, 0)?;
 
         // Close the account and send the rent to the seller
         token_interface::close_account(CpiContext::new(
